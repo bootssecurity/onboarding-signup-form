@@ -3,18 +3,19 @@ import React from 'react'
 const TextBlockField = ({ field }) => {
   return (
     <div 
-      className="py-2"
-      style={{ textAlign: field.textAlign || 'left' }}
+      className="py-2" 
+      style={{ 
+        textAlign: field.textAlign || 'left',
+        color: field.color || '#374151',
+        fontSize: field.fontSize || '1rem'
+      }}
     >
-      <div
+      <div 
         className="prose max-w-none"
-        style={{ 
-          color: field.color || '#374151',
-          fontSize: field.fontSize || '1rem'
+        dangerouslySetInnerHTML={{ 
+          __html: field.content || 'Text block content' 
         }}
-      >
-        {field.content}
-      </div>
+      />
     </div>
   )
 }

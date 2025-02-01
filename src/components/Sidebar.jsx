@@ -21,12 +21,10 @@ import {
   ListBulletIcon,
   ChatBubbleLeftIcon,
   ExclamationTriangleIcon,
-  InformationCircleIcon,
-  CheckCircleIcon,
-  FolderIcon
+  Cog6ToothIcon
 } from '@heroicons/react/24/outline'
 import useStore from '../store'
-import FormManager from './FormManager'
+import FormSettings from './FormSettings'
 
 const FIELD_CATEGORIES = [
   {
@@ -35,25 +33,17 @@ const FIELD_CATEGORIES = [
       { 
         type: 'heading', 
         label: 'Heading',
-        placeholder: 'Enter heading text',
-        icon: HashtagIcon,
-        defaultContent: 'New Heading',
-        headingLevel: 'h2'
+        icon: HashtagIcon
       },
       { 
         type: 'text_block', 
         label: 'Text Block',
-        placeholder: 'Enter text content',
-        icon: DocumentTextIcon,
-        defaultContent: 'Enter your text here'
+        icon: DocumentTextIcon
       },
       { 
         type: 'image', 
         label: 'Image',
-        placeholder: 'Upload or enter image URL',
-        icon: PhotoIcon,
-        allowedTypes: ['jpg', 'jpeg', 'png', 'gif'],
-        maxSize: 5
+        icon: PhotoIcon
       },
       { 
         type: 'divider', 
@@ -64,28 +54,6 @@ const FIELD_CATEGORIES = [
         type: 'spacer',
         label: 'Spacing',
         icon: ArrowsPointingOutIcon
-      },
-      {
-        type: 'container',
-        label: 'Container',
-        icon: Square2StackIcon
-      },
-      {
-        type: 'bullet_list',
-        label: 'Bullet List',
-        icon: ListBulletIcon,
-        defaultItems: ['List item 1', 'List item 2']
-      },
-      {
-        type: 'alert',
-        label: 'Alert Box',
-        icon: ExclamationTriangleIcon,
-        variants: ['info', 'success', 'warning', 'error']
-      },
-      {
-        type: 'quote',
-        label: 'Quote Block',
-        icon: ChatBubbleLeftIcon
       }
     ]
   },
@@ -119,21 +87,16 @@ const FIELD_CATEGORIES = [
       { 
         type: 'profile_photo', 
         label: 'Profile Photo',
-        placeholder: 'Upload profile photo',
-        icon: UserCircleIcon,
-        allowedTypes: ['jpg', 'jpeg', 'png'],
-        maxSize: 2
+        icon: UserCircleIcon
       },
       { 
         type: 'date', 
         label: 'Date',
-        placeholder: 'Select date',
         icon: CalendarIcon
       },
       { 
         type: 'company', 
         label: 'Company Details',
-        placeholder: 'Enter company name',
         icon: BuildingOfficeIcon
       },
       { 
@@ -151,7 +114,6 @@ const FIELD_CATEGORIES = [
       { 
         type: 'payment', 
         label: 'Payment Details',
-        placeholder: 'Enter card details',
         icon: CreditCardIcon
       },
       { 
@@ -163,31 +125,25 @@ const FIELD_CATEGORIES = [
       { 
         type: 'file', 
         label: 'Document Upload',
-        placeholder: 'Upload document',
-        icon: DocumentIcon,
-        allowedTypes: ['pdf', 'doc', 'docx'],
-        maxSize: 5
+        icon: DocumentIcon
       }
     ]
   }
 ]
 
 const Sidebar = () => {
-  const { steps, currentStep, addField, updateFormStyle, saveForm, currentFormId } = useStore()
-  const [showFormManager, setShowFormManager] = useState(false)
-  const currentStepId = steps[currentStep]?.id
-
-  const handleSaveForm = () => {
-    const title = prompt('Enter a name for your form:')
-    if (title) {
-      saveForm(title)
-      alert('Form saved successfully!')
-    }
-  }
+  const store = useStore()
+  const [showSettings, setShowSettings] = useState(false)
+  const currentStepId = store.steps[store.currentStep]?.id
 
   const handleAddField = (field) => {
+    console.log('Attempting to add field:', field)
+    console.log('Current step ID:', currentStepId)
+    
     if (currentStepId) {
-      addField(currentStepId, field)
+      store.addField(currentStepId, field)
+    } else {
+      console.error('No current step ID found')
     }
   }
 
@@ -196,13 +152,13 @@ const Sidebar = () => {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Form Builder</h2>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2">
             <button
-              onClick={() => setShowFormManager(true)}
+              onClick={() => setShowSettings(true)}
               className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
-              title="Manage Forms"
+              title="Form Settings"
             >
-              <FolderIcon className="w-5 h-5" />
+              <Cog6ToothIcon className="w-5 h-5" />
             </button>
             <button
               onClick={() => document.getElementById('styleEditor').showModal()}
@@ -212,14 +168,6 @@ const Sidebar = () => {
               <PaintBrushIcon className="w-5 h-5" />
             </button>
           </div>
-        </div>
-        <div className="flex justify-end">
-          <button
-            onClick={handleSaveForm}
-            className="text-sm text-blue-600 hover:text-blue-700"
-          >
-            {currentFormId ? 'Save Changes' : 'Save Form'}
-          </button>
         </div>
       </div>
 
@@ -254,9 +202,7 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {showFormManager && (
-        <FormManager onClose={() => setShowFormManager(false)} />
-      )}
+      {showSettings && <FormSettings onClose={() => setShowSettings(false)} />}
     </div>
   )
 }

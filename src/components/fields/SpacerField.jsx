@@ -2,9 +2,9 @@ import React from 'react'
 
 const SpacerField = ({ field }) => {
   const spacingMap = {
-    small: '1rem',
-    medium: '2rem',
-    large: '4rem',
+    small: '0.5rem',
+    medium: '1rem',
+    large: '2rem',
     custom: field.customHeight
   }
 

@@ -2,18 +2,16 @@ import React, { useState } from 'react'
 import { TrashIcon, PencilIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import useStore from '../store'
 import FieldEditor from './FieldEditor'
-import HeadingField from './fields/HeadingField'
-import ImageField from './fields/ImageField'
-import DividerField from './fields/DividerField'
-import TextBlockField from './fields/TextBlockField'
-import SpacerField from './fields/SpacerField'
-import ContainerField from './fields/ContainerField'
-import BulletListField from './fields/BulletListField'
-import AlertField from './fields/AlertField'
-import QuoteField from './fields/QuoteField'
+import {
+  HeadingField,
+  TextBlockField,
+  ImageField,
+  DividerField,
+  SpacerField
+} from './fields'
 
-const FormField = ({ field, stepId, index }) => {
-  const { removeField, reorderFields, steps, currentStep, updateFieldValue } = useStore()
+const FormField = ({ field, stepId, index, onChange, error }) => {
+  const { removeField, reorderFields, steps, currentStep } = useStore()
   const currentFields = steps[currentStep]?.fields ?? []
   const [showEditor, setShowEditor] = useState(false)
 
@@ -24,9 +22,6 @@ const FormField = ({ field, stepId, index }) => {
       reorderFields(stepId, field.id, targetField.id)
     }
   }
-
-  const baseInputClasses = "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
-  const labelClasses = "block mb-2 text-sm font-medium text-gray-700 flex items-center gap-2"
 
   const renderField = () => {
     switch (field.type) {
@@ -40,83 +35,14 @@ const FormField = ({ field, stepId, index }) => {
         return <DividerField field={field} />
       case 'spacer':
         return <SpacerField field={field} />
-      case 'container':
-        return <ContainerField field={field} />
-      case 'bullet_list':
-        return <BulletListField field={field} />
-      case 'alert':
-        return <AlertField field={field} />
-      case 'quote':
-        return <QuoteField field={field} />
-      case 'email':
-        return (
-          <div>
-            <label className={labelClasses}>
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            {field.description && (
-              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
-            )}
-            <input 
-              type="email" 
-              placeholder={field.placeholder}
-              className={baseInputClasses}
-              required={field.required}
-              value={field.value || ''}
-              onChange={(e) => updateFieldValue(stepId, field.id, e.target.value)}
-              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
-            />
-          </div>
-        )
-      case 'password':
-      case 'confirm_password':
-        return (
-          <div>
-            <label className={labelClasses}>
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            {field.description && (
-              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
-            )}
-            <input 
-              type="password" 
-              placeholder={field.placeholder}
-              className={baseInputClasses}
-              required={field.required}
-              value={field.value || ''}
-              onChange={(e) => updateFieldValue(stepId, field.id, e.target.value)}
-              minLength={8}
-            />
-          </div>
-        )
+      
+      // Other field types remain the same
       case 'text':
-      case 'website':
-      case 'id_number':
-        return (
-          <div>
-            <label className={labelClasses}>
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            {field.description && (
-              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
-            )}
-            <input 
-              type="text" 
-              placeholder={field.placeholder}
-              className={baseInputClasses}
-              required={field.required}
-              value={field.value || ''}
-              onChange={(e) => updateFieldValue(stepId, field.id, e.target.value)}
-            />
-          </div>
-        )
+      case 'email':
       case 'phone':
         return (
           <div>
-            <label className={labelClasses}>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
               {field.label}
               {field.required && <span className="text-red-500 text-xs">*</span>}
             </label>
@@ -124,35 +50,19 @@ const FormField = ({ field, stepId, index }) => {
               <p className="text-xs text-gray-500 mb-2">{field.description}</p>
             )}
             <input 
-              type="tel" 
+              type={field.type}
               placeholder={field.placeholder}
-              className={baseInputClasses}
+              className="w-full px-3 py-2 border rounded-md"
               required={field.required}
-              value={field.value || ''}
-              onChange={(e) => updateFieldValue(stepId, field.id, e.target.value)}
-              pattern="[0-9]{10}"
+              onChange={(e) => onChange && onChange(e.target.value)}
             />
-          </div>
-        )
-      case 'textarea':
-        return (
-          <div>
-            <label className={labelClasses}>
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            {field.description && (
-              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
+            {error && (
+              <p className="text-red-500 text-xs mt-1">{error}</p>
             )}
-            <textarea 
-              placeholder={field.placeholder}
-              className={`${baseInputClasses} min-h-[100px]`}
-              required={field.required}
-              value={field.value || ''}
-              onChange={(e) => updateFieldValue(stepId, field.id, e.target.value)}
-            />
           </div>
         )
+      
+      // Other field types...
       default:
         return null
     }

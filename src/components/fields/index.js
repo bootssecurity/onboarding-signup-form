@@ -1,1 +1,5 @@
-// Remove this file as we're not using it anymore
+export { default as HeadingField } from './HeadingField'
+export { default as TextBlockField } from './TextBlockField'
+export { default as ImageField } from './ImageField'
+export { default as DividerField } from './DividerField'
+export { default as SpacerField } from './SpacerField'

@@ -6,20 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "docker:build": "docker build -t form-builder .",
-    "docker:run": "docker run -p 80:80 form-builder",
-    "docker:deploy": "bash scripts/deploy.sh"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "@dnd-kit/core": "^6.0.8",
     "@dnd-kit/sortable": "^7.0.2",
     "@dnd-kit/utilities": "^3.2.1",
     "@heroicons/react": "^2.0.18",
-    "zustand": "^4.3.8",
-    "nanoid": "^4.0.2"
+    "nanoid": "^4.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/react": "^18.2.14",
