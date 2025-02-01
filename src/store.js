@@ -43,7 +43,11 @@ const createField = (type, label, field = {}) => ({
 const useStore = create((set) => ({
   steps: [{
     id: nanoid(),
-    fields: []
+    fields: [
+      createField('email', 'Email', { required: true }),
+      createField('password', 'Password', { required: true }),
+      createField('password', 'Confirm Password', { required: true, placeholder: 'Confirm Password' })
+    ]
   }],
   currentStep: 0,
   formStyle: {
