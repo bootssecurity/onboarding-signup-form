@@ -2,8 +2,19 @@ import React, { useState } from 'react'
 import { TrashIcon, PencilIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import useStore from '../store'
 import FieldEditor from './FieldEditor'
+import {
+  HeadingField,
+  ImageField,
+  DividerField,
+  ProfilePhotoField,
+  InputField,
+  AddressField,
+  CompanyField,
+  PaymentField,
+  FileField
+} from './fields'
 
-const FormField = ({ field, stepId, index, onChange, error }) => {
+const FormField = ({ field, stepId, index }) => {
   const { removeField, reorderFields, steps, currentStep } = useStore()
   const currentFields = steps[currentStep]?.fields ?? []
   const [showEditor, setShowEditor] = useState(false)
@@ -16,232 +27,56 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
     }
   }
 
-  const handleInputChange = (e) => {
-    if (onChange) {
-      onChange(e.target.value)
-    }
-  }
-
-  const handleEditClick = (e) => {
-    e.preventDefault()
-    setShowEditor(true)
-  }
+  const baseInputClasses = "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow"
+  const labelClasses = "block mb-2 text-sm font-medium text-gray-700 flex items-center gap-2"
 
   const renderField = () => {
     switch (field.type) {
       case 'heading':
-        return (
-          <div 
-            className="py-2" 
-            style={{ textAlign: field.textAlign || 'left' }}
-          >
-            {field.headingLevel === 'h1' && (
-              <h1 
-                className="text-4xl font-bold" 
-                style={{ color: field.color || '#000000' }}
-              >
-                {field.content || 'New Heading'}
-              </h1>
-            )}
-            {field.headingLevel === 'h2' && (
-              <h2 
-                className="text-3xl font-bold" 
-                style={{ color: field.color || '#000000' }}
-              >
-                {field.content || 'New Heading'}
-              </h2>
-            )}
-            {field.headingLevel === 'h3' && (
-              <h3 
-                className="text-2xl font-bold" 
-                style={{ color: field.color || '#000000' }}
-              >
-                {field.content || 'New Heading'}
-              </h3>
-            )}
-            {field.headingLevel === 'h4' && (
-              <h4 
-                className="text-xl font-bold" 
-                style={{ color: field.color || '#000000' }}
-              >
-                {field.content || 'New Heading'}
-              </h4>
-            )}
-          </div>
-        )
-      
-      case 'text_block':
-        return (
-          <div 
-            className="py-2" 
-            style={{ 
-              textAlign: field.textAlign || 'left',
-              color: field.color || '#374151',
-              fontSize: field.fontSize || '1rem'
-            }}
-          >
-            <div 
-              className="prose max-w-none"
-              dangerouslySetInnerHTML={{ 
-                __html: field.content || 'Text block content' 
-              }}
-            />
-          </div>
-        )
-      
+        return <HeadingField field={field} />
       case 'image':
-        return (
-          <div 
-            className="py-4" 
-            style={{ 
-              textAlign: field.alignment || 'center',
-              display: 'flex',
-              justifyContent: field.alignment || 'center'
-            }}
-          >
-            {field.src ? (
-              <img 
-                src={field.src} 
-                alt={field.alt || 'Uploaded image'}
-                style={{
-                  width: field.width || '100%',
-                  height: field.height || 'auto',
-                  maxWidth: '100%',
-                  objectFit: 'contain'
-                }}
-                className="rounded-lg shadow-md"
-              />
-            ) : (
-              <div 
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
-                style={{ width: field.width || '100%' }}
-              >
-                <p className="text-gray-500">
-                  {field.placeholder || 'Upload an image or enter URL'}
-                </p>
-              </div>
-            )}
-          </div>
-        )
-      
+        return <ImageField field={field} />
       case 'divider':
-        return (
-          <hr 
-            className={`my-6 border-t ${
-              field.style === 'dashed' ? 'border-dashed' : 
-              field.style === 'dotted' ? 'border-dotted' : 
-              field.style === 'double' ? 'border-double' : 
-              'border-solid'
-            }`}
-            style={{ 
-              borderColor: field.color || '#e5e7eb',
-              borderTopWidth: field.spacing === 'small' ? '1px' : 
-                             field.spacing === 'large' ? '3px' : '2px'
-            }}
-          />
-        )
-      
-      case 'spacer':
-        return (
-          <div 
-            style={{
-              height: field.spacing === 'small' ? '0.5rem' :
-                      field.spacing === 'large' ? '2rem' : '1rem',
-              borderTop: field.showLine ? `1px ${field.style || 'solid'} ${field.lineColor || '#e5e7eb'}` : 'none'
-            }}
-          />
-        )
-      
+        return <DividerField field={field} />
+      case 'profile_photo':
+        return <ProfilePhotoField field={field} labelClasses={labelClasses} />
       case 'text':
+      case 'website':
+      case 'id_number':
+        return <InputField field={field} type="text" baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
       case 'email':
+        return <InputField field={field} type="email" baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
       case 'phone':
-        return (
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            <input 
-              type={field.type}
-              placeholder={field.placeholder}
-              className={`w-full px-3 py-2 border rounded-md ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-              required={field.required}
-              onChange={handleInputChange}
-            />
-            {error && (
-              <p className="text-red-500 text-xs mt-1">{error}</p>
-            )}
-          </div>
-        )
-      
+        return <InputField field={field} type="tel" baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
+      case 'address':
+        return <AddressField field={field} baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
+      case 'date':
+        return <InputField field={field} type="date" baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
+      case 'company':
+        return <CompanyField field={field} baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
+      case 'payment':
+        return <PaymentField field={field} baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
       case 'textarea':
         return (
           <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
+            <label className={labelClasses}>
               {field.label}
               {field.required && <span className="text-red-500 text-xs">*</span>}
             </label>
+            {field.description && (
+              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
+            )}
             <textarea 
               placeholder={field.placeholder}
-              className={`w-full px-3 py-2 border rounded-md min-h-[100px] ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
+              className={`${baseInputClasses} min-h-[100px]`}
               required={field.required}
-              onChange={handleInputChange}
             />
-            {error && (
-              <p className="text-red-500 text-xs mt-1">{error}</p>
-            )}
           </div>
         )
-      
       case 'file':
-        return (
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            <input 
-              type="file"
-              className={`w-full px-3 py-2 border rounded-md ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-              required={field.required}
-              onChange={handleInputChange}
-            />
-            {error && (
-              <p className="text-red-500 text-xs mt-1">{error}</p>
-            )}
-          </div>
-        )
-      
-      case 'profile_photo':
-        return (
-          <div>
-            <label className="block mb-2 text-sm font-medium text-gray-700">
-              {field.label}
-              {field.required && <span className="text-red-500 text-xs">*</span>}
-            </label>
-            <input 
-              type="file"
-              accept="image/*"
-              className={`w-full px-3 py-2 border rounded-md ${
-                error ? 'border-red-500' : 'border-gray-300'
-              }`}
-              required={field.required}
-              onChange={handleInputChange}
-            />
-            {error && (
-              <p className="text-red-500 text-xs mt-1">{error}</p>
-            )}
-          </div>
-        )
-      
+        return <FileField field={field} baseInputClasses={baseInputClasses} labelClasses={labelClasses} />
       default:
-        return <div>Unsupported field type: {field.type}</div>
+        return null
     }
   }
 
@@ -267,7 +102,7 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
           </button>
         )}
         <button 
-          onClick={handleEditClick}
+          onClick={() => setShowEditor(true)}
           className="p-1.5 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
           title="Edit field"
         >

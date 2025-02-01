@@ -8,18 +8,24 @@ const HeadingField = ({ field }) => {
     h4: 'text-xl font-bold'
   }
 
+  const fontSize = {
+    sm: 'text-sm',
+    default: '',
+    lg: 'text-lg',
+    xl: 'text-xl'
+  }
+
   const Tag = field.headingLevel || 'h2'
   
   return (
-    <div 
-      className="py-2" 
-      style={{ textAlign: field.textAlign || 'left' }}
-    >
+    <div className="py-2" style={{ textAlign: field.textAlign || 'left' }}>
       <Tag 
-        className={headingClasses[field.headingLevel] || headingClasses.h2}
-        style={{ color: field.color || '#000000' }}
+        className={`${headingClasses[field.headingLevel]} ${fontSize[field.fontSize] || ''}`}
+        style={{ 
+          color: field.color || '#000000'
+        }}
       >
-        {field.content || 'New Heading'}
+        {field.content}
       </Tag>
     </div>
   )

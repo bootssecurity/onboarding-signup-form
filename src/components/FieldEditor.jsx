@@ -1,116 +1,131 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
 import useStore from '../store'
 
 const FieldEditor = ({ field, stepId, onClose }) => {
   const { updateField } = useStore()
   const [currentTab, setCurrentTab] = useState('basic')
-  const [fieldState, setFieldState] = useState({})
-
-  useEffect(() => {
-    setFieldState({
-      ...field,
-      label: field.label || '',
-      description: field.description || '',
-      required: field.required || false
-    })
-  }, [field])
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFieldState(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
-  }
+  const [alignment, setAlignment] = useState(field.textAlign || field.alignment || 'left')
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    
+    const formData = new FormData(e.target)
     const updates = {
-      ...fieldState,
+      label: formData.get('label'),
+      placeholder: formData.get('placeholder'),
+      description: formData.get('description'),
+      required: formData.get('required') === 'on',
     }
 
+    // Layout specific fields
     if (field.type === 'heading') {
-      updates.content = fieldState.content;
-      updates.headingLevel = fieldState.headingLevel;
-      updates.textAlign = fieldState.textAlign;
-      updates.color = fieldState.color;
-      updates.fontSize = fieldState.fontSize;
-    }
-
-    if (field.type === 'text_block') {
-      updates.content = fieldState.content;
-      updates.textAlign = fieldState.textAlign;
-      updates.color = fieldState.color;
-      updates.fontSize = fieldState.fontSize;
+      updates.content = formData.get('content')
+      updates.headingLevel = formData.get('headingLevel')
+      updates.textAlign = alignment
+      updates.color = formData.get('color')
+      updates.fontSize = formData.get('fontSize')
     }
 
     if (field.type === 'image') {
-      updates.src = fieldState.src;
-      updates.alt = fieldState.alt;
-      updates.width = fieldState.width;
-      updates.height = fieldState.height;
-      updates.alignment = fieldState.alignment;
+      updates.src = formData.get('src')
+      updates.alt = formData.get('alt')
+      updates.width = formData.get('width')
+      updates.height = formData.get('height')
+      updates.alignment = alignment
     }
 
     if (field.type === 'divider') {
-      updates.style = fieldState.style;
-      updates.color = fieldState.color;
-      updates.spacing = fieldState.spacing;
+      updates.style = formData.get('style')
+      updates.color = formData.get('color')
+      updates.spacing = formData.get('spacing')
     }
 
-    if (field.type === 'spacer') {
-      updates.spacing = fieldState.spacing;
-      updates.showLine = fieldState.showLine;
-      updates.lineColor = fieldState.lineColor;
+    // File specific fields
+    if (field.type === 'file' || field.type === 'profile_photo') {
+      updates.allowedTypes = formData.get('allowedTypes')?.split(',').map(t => t.trim()) || []
+      updates.maxSize = parseInt(formData.get('maxSize')) || 5
     }
 
     updateField(stepId, field.id, updates)
     onClose()
   }
 
+  const renderAlignmentButtons = () => (
+    <div className="flex gap-2">
+      {['left', 'center', 'right'].map((align) => (
+        <button
+          key={align}
+          type="button"
+          onClick={() => setAlignment(align)}
+          className={`flex-1 py-2 px-3 border rounded-md transition-colors ${
+            alignment === align 
+              ? 'bg-blue-50 border-blue-500 text-blue-600' 
+              : 'border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          <span className="capitalize">{align}</span>
+        </button>
+      ))}
+    </div>
+  )
+
   const renderBasicFields = () => (
     <div className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Label
-        </label>
-        <input
-          type="text"
-          name="label"
-          value={fieldState.label}
-          onChange={handleInputChange}
-          className="w-full px-3 py-2 border rounded-md"
-        />
-      </div>
+      {field.type !== 'divider' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Label
+          </label>
+          <input
+            type="text"
+            name="label"
+            defaultValue={field.label}
+            className="w-full px-3 py-2 border rounded-md"
+            required
+          />
+        </div>
+      )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <input
-          type="text"
-          name="description"
-          value={fieldState.description}
-          onChange={handleInputChange}
-          className="w-full px-3 py-2 border rounded-md"
-        />
-      </div>
+      {!['heading', 'image', 'divider'].includes(field.type) && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Placeholder
+            </label>
+            <input
+              type="text"
+              name="placeholder"
+              defaultValue={field.placeholder}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
 
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          name="required"
-          id="required"
-          checked={fieldState.required}
-          onChange={handleInputChange}
-          className="h-4 w-4 text-blue-600 rounded border-gray-300"
-        />
-        <label htmlFor="required" className="ml-2 text-sm text-gray-700">
-          Required field
-        </label>
-      </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Help Text
+            </label>
+            <input
+              type="text"
+              name="description"
+              defaultValue={field.description}
+              className="w-full px-3 py-2 border rounded-md"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="required"
+              id="required"
+              defaultChecked={field.required}
+              className="h-4 w-4 text-blue-600 rounded border-gray-300"
+            />
+            <label htmlFor="required" className="ml-2 text-sm text-gray-700">
+              Required field
+            </label>
+          </div>
+        </>
+      )}
     </div>
   )
 
@@ -121,13 +136,12 @@ const FieldEditor = ({ field, stepId, onClose }) => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Heading Content
+                Heading Text
               </label>
               <input
                 type="text"
                 name="content"
-                value={fieldState.content}
-                onChange={handleInputChange}
+                defaultValue={field.content}
                 className="w-full px-3 py-2 border rounded-md"
               />
             </div>
@@ -138,8 +152,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               </label>
               <select
                 name="headingLevel"
-                value={fieldState.headingLevel}
-                onChange={handleInputChange}
+                defaultValue={field.headingLevel || 'h2'}
                 className="w-full px-3 py-2 border rounded-md"
               >
                 <option value="h1">Heading 1</option>
@@ -151,106 +164,37 @@ const FieldEditor = ({ field, stepId, onClose }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Text Alignment
-              </label>
-              <div className="flex gap-2">
-                {['left', 'center', 'right'].map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => setFieldState(prev => ({ ...prev, textAlign: align }))}
-                    className={`flex-1 py-2 px-3 border rounded-md transition-colors ${
-                      fieldState.textAlign === align 
-                        ? 'bg-blue-50 border-blue-500 text-blue-600' 
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="capitalize">{align}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Text Color
-              </label>
-              <input
-                type="color"
-                name="color"
-                value={fieldState.color}
-                onChange={handleInputChange}
-                className="h-10 w-20"
-              />
-            </div>
-          </div>
-        )
-
-      case 'text_block':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Content
-              </label>
-              <textarea
-                name="content"
-                value={fieldState.content}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md min-h-[100px]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Text Alignment
-              </label>
-              <div className="flex gap-2">
-                {['left', 'center', 'right'].map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => setFieldState(prev => ({ ...prev, textAlign: align }))}
-                    className={`flex-1 py-2 px-3 border rounded-md transition-colors ${
-                      fieldState.textAlign === align 
-                        ? 'bg-blue-50 border-blue-500 text-blue-600' 
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="capitalize">{align}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Text Color
-              </label>
-              <input
-                type="color"
-                name="color"
-                value={fieldState.color}
-                onChange={handleInputChange}
-                className="h-10 w-20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Font Size
               </label>
               <select
                 name="fontSize"
-                value={fieldState.fontSize}
-                onChange={handleInputChange}
+                defaultValue={field.fontSize || 'default'}
                 className="w-full px-3 py-2 border rounded-md"
               >
-                <option value="0.75rem">Extra Small</option>
-                <option value="1rem">Normal</option>
-                <option value="1.25rem">Large</option>
-                <option value="1.5rem">Extra Large</option>
+                <option value="default">Default</option>
+                <option value="sm">Small</option>
+                <option value="lg">Large</option>
+                <option value="xl">Extra Large</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Text Alignment
+              </label>
+              {renderAlignmentButtons()}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Text Color
+              </label>
+              <input
+                type="color"
+                name="color"
+                defaultValue={field.color || '#000000'}
+                className="h-10 w-20"
+              />
             </div>
           </div>
         )
@@ -265,8 +209,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               <input
                 type="url"
                 name="src"
-                value={fieldState.src}
-                onChange={handleInputChange}
+                defaultValue={field.src}
                 className="w-full px-3 py-2 border rounded-md"
                 placeholder="https://example.com/image.jpg"
               />
@@ -279,33 +222,9 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               <input
                 type="text"
                 name="alt"
-                value={fieldState.alt}
-                onChange={handleInputChange}
+                defaultValue={field.alt}
                 className="w-full px-3 py-2 border rounded-md"
-                placeholder="Describe the image"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image Alignment
-              </label>
-              <div className="flex gap-2">
-                {['left', 'center', 'right'].map((align) => (
-                  <button
-                    key={align}
-                    type="button"
-                    onClick={() => setFieldState(prev => ({ ...prev, alignment: align }))}
-                    className={`flex-1 py-2 px-3 border rounded-md transition-colors ${
-                      fieldState.alignment === align 
-                        ? 'bg-blue-50 border-blue-500 text-blue-600' 
-                        : 'border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className="capitalize">{align}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -315,8 +234,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
                 </label>
                 <select
                   name="width"
-                  value={fieldState.width}
-                  onChange={handleInputChange}
+                  defaultValue={field.width || '100%'}
                   className="w-full px-3 py-2 border rounded-md"
                 >
                   <option value="25%">25%</option>
@@ -332,8 +250,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
                 </label>
                 <select
                   name="height"
-                  value={fieldState.height}
-                  onChange={handleInputChange}
+                  defaultValue={field.height || 'auto'}
                   className="w-full px-3 py-2 border rounded-md"
                 >
                   <option value="auto">Auto</option>
@@ -342,6 +259,13 @@ const FieldEditor = ({ field, stepId, onClose }) => {
                   <option value="400px">Large</option>
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alignment
+              </label>
+              {renderAlignmentButtons()}
             </div>
           </div>
         )
@@ -355,8 +279,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               </label>
               <select
                 name="style"
-                value={fieldState.style}
-                onChange={handleInputChange}
+                defaultValue={field.style || 'solid'}
                 className="w-full px-3 py-2 border rounded-md"
               >
                 <option value="solid">Solid</option>
@@ -373,8 +296,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               <input
                 type="color"
                 name="color"
-                value={fieldState.color}
-                onChange={handleInputChange}
+                defaultValue={field.color || '#e5e7eb'}
                 className="h-10 w-20"
               />
             </div>
@@ -385,8 +307,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
               </label>
               <select
                 name="spacing"
-                value={fieldState.spacing}
-                onChange={handleInputChange}
+                defaultValue={field.spacing || 'medium'}
                 className="w-full px-3 py-2 border rounded-md"
               >
                 <option value="small">Small</option>
@@ -394,62 +315,46 @@ const FieldEditor = ({ field, stepId, onClose }) => {
                 <option value="large">Large</option>
               </select>
             </div>
-          </div>
-        )
-
-      case 'spacer':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Spacing
-              </label>
-              <select
-                name="spacing"
-                value={fieldState.spacing}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-              >
-                <option value="small">Small</option>
-                <option value="medium">Medium</option>
-                <option value="large">Large</option>
-              </select>
-            </div>
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="showLine"
-                id="showLine"
-                checked={fieldState.showLine}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 rounded border-gray-300"
-              />
-              <label htmlFor="showLine" className="ml-2 text-sm text-gray-700">
-                Show Divider Line
-              </label>
-            </div>
-
-            {fieldState.showLine && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Line Color
-                </label>
-                <input
-                  type="color"
-                  name="lineColor"
-                  value={fieldState.lineColor}
-                  onChange={handleInputChange}
-                  className="h-10 w-20"
-                />
-              </div>
-            )}
           </div>
         )
 
       default:
         return null
     }
+  }
+
+  const renderFileFields = () => {
+    if (!['file', 'profile_photo'].includes(field.type)) return null
+
+    return (
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Allowed File Types (comma-separated)
+          </label>
+          <input
+            type="text"
+            name="allowedTypes"
+            defaultValue={field.allowedTypes?.join(', ')}
+            className="w-full px-3 py-2 border rounded-md"
+            placeholder="pdf, doc, docx"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Max File Size (MB)
+          </label>
+          <input
+            type="number"
+            name="maxSize"
+            defaultValue={field.maxSize}
+            min="1"
+            className="w-full px-3 py-2 border rounded-md"
+          />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -478,7 +383,7 @@ const FieldEditor = ({ field, stepId, onClose }) => {
             >
               Basic Settings
             </button>
-            {['heading', 'text_block', 'image', 'divider', 'spacer'].includes(field.type) && (
+            {['heading', 'image', 'divider'].includes(field.type) && (
               <button
                 type="button"
                 onClick={() => setCurrentTab('layout')}
@@ -491,12 +396,26 @@ const FieldEditor = ({ field, stepId, onClose }) => {
                 Layout Settings
               </button>
             )}
+            {['file', 'profile_photo'].includes(field.type) && (
+              <button
+                type="button"
+                onClick={() => setCurrentTab('file')}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  currentTab === 'file'
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                File Settings
+              </button>
+            )}
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {currentTab === 'basic' && renderBasicFields()}
           {currentTab === 'layout' && renderLayoutFields()}
+          {currentTab === 'file' && renderFileFields()}
 
           <div className="flex justify-end gap-3 pt-4">
             <button

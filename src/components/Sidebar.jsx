@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { 
   PlusIcon, 
   DocumentIcon, 
@@ -15,16 +15,9 @@ import {
   CreditCardIcon,
   PaintBrushIcon,
   Bars3Icon,
-  HashtagIcon,
-  Square2StackIcon,
-  ArrowsPointingOutIcon,
-  ListBulletIcon,
-  ChatBubbleLeftIcon,
-  ExclamationTriangleIcon,
-  Cog6ToothIcon
+  HashtagIcon
 } from '@heroicons/react/24/outline'
 import useStore from '../store'
-import FormSettings from './FormSettings'
 
 const FIELD_CATEGORIES = [
   {
@@ -33,27 +26,23 @@ const FIELD_CATEGORIES = [
       { 
         type: 'heading', 
         label: 'Heading',
-        icon: HashtagIcon
-      },
-      { 
-        type: 'text_block', 
-        label: 'Text Block',
-        icon: DocumentTextIcon
+        placeholder: 'Enter heading text',
+        icon: HashtagIcon,
+        defaultContent: 'New Heading',
+        headingLevel: 'h2'
       },
       { 
         type: 'image', 
         label: 'Image',
-        icon: PhotoIcon
+        placeholder: 'Upload or enter image URL',
+        icon: PhotoIcon,
+        allowedTypes: ['jpg', 'jpeg', 'png', 'gif'],
+        maxSize: 5
       },
       { 
         type: 'divider', 
         label: 'Divider',
         icon: Bars3Icon
-      },
-      {
-        type: 'spacer',
-        label: 'Spacing',
-        icon: ArrowsPointingOutIcon
       }
     ]
   },
@@ -87,16 +76,21 @@ const FIELD_CATEGORIES = [
       { 
         type: 'profile_photo', 
         label: 'Profile Photo',
-        icon: UserCircleIcon
+        placeholder: 'Upload profile photo',
+        icon: UserCircleIcon,
+        allowedTypes: ['jpg', 'jpeg', 'png'],
+        maxSize: 2
       },
       { 
         type: 'date', 
         label: 'Date',
+        placeholder: 'Select date',
         icon: CalendarIcon
       },
       { 
         type: 'company', 
         label: 'Company Details',
+        placeholder: 'Enter company name',
         icon: BuildingOfficeIcon
       },
       { 
@@ -114,6 +108,7 @@ const FIELD_CATEGORIES = [
       { 
         type: 'payment', 
         label: 'Payment Details',
+        placeholder: 'Enter card details',
         icon: CreditCardIcon
       },
       { 
@@ -125,22 +120,22 @@ const FIELD_CATEGORIES = [
       { 
         type: 'file', 
         label: 'Document Upload',
-        icon: DocumentIcon
+        placeholder: 'Upload document',
+        icon: DocumentIcon,
+        allowedTypes: ['pdf', 'doc', 'docx'],
+        maxSize: 5
       }
     ]
   }
 ]
 
 const Sidebar = () => {
-  const store = useStore()
-  const [showSettings, setShowSettings] = useState(false)
-  const currentStepId = store.steps[store.currentStep]?.id
+  const { steps, currentStep, addField, updateFormStyle } = useStore()
+  const currentStepId = steps[currentStep]?.id
 
   const handleAddField = (field) => {
     if (currentStepId) {
-      store.addField(currentStepId, field)
-    } else {
-      console.error('No current step ID found')
+      addField(currentStepId, field)
     }
   }
 
@@ -149,37 +144,13 @@ const Sidebar = () => {
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Form Builder</h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
-              title="Form Settings"
-            >
-              <Cog6ToothIcon className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => document.getElementById('styleEditor').showModal()}
-              className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
-              title="Style Settings"
-            >
-              <PaintBrushIcon className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <a
-            href="/submissions"
-            className="text-sm text-blue-600 hover:text-blue-700"
+          <button
+            onClick={() => document.getElementById('styleEditor').showModal()}
+            className="p-2 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
+            title="Style Settings"
           >
-            View Submissions
-          </a>
-          <a
-            href="/form"
-            className="text-sm text-blue-600 hover:text-blue-700"
-            target="_blank"
-          >
-            Open Form
-          </a>
+            <PaintBrushIcon className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -214,7 +185,85 @@ const Sidebar = () => {
         ))}
       </div>
 
-      {showSettings && <FormSettings onClose={() => setShowSettings(false)} />}
+      <dialog id="styleEditor" className="modal p-0 rounded-lg shadow-xl backdrop:bg-gray-500/50">
+        <div className="w-[500px]">
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="text-lg font-medium">Form Style Settings</h3>
+            <button 
+              onClick={() => document.getElementById('styleEditor').close()}
+              className="text-gray-400 hover:text-gray-500"
+            >
+              ✕
+            </button>
+          </div>
+          <form method="dialog" className="p-6 space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Primary Color
+                </label>
+                <div className="flex gap-3">
+                  <input 
+                    type="color" 
+                    onChange={(e) => updateFormStyle({ primaryColor: e.target.value })}
+                    className="h-10 w-20"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => updateFormStyle({ primaryColor: '#2563eb' })}
+                    className="text-sm text-gray-600 hover:text-blue-600"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Background Color
+                </label>
+                <div className="flex gap-3">
+                  <input 
+                    type="color" 
+                    onChange={(e) => updateFormStyle({ backgroundColor: e.target.value })}
+                    className="h-10 w-20"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => updateFormStyle({ backgroundColor: '#ffffff' })}
+                    className="text-sm text-gray-600 hover:text-blue-600"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Border Radius
+                </label>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="20" 
+                  defaultValue="8"
+                  onChange={(e) => updateFormStyle({ borderRadius: `${e.target.value}px` })}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              >
+                Close
+              </button>
+            </div>
+          </form>
+        </div>
+      </dialog>
     </div>
   )
 }
