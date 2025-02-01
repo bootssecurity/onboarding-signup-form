@@ -1,25 +1,19 @@
 import React, { useState, useEffect } from 'react'
 
-  const SubmissionViewer = ({ formId }) => {
-    const [submissions, setSubmissions] = useState([])
+const SubmissionViewer = ({ formId }) => {
+  const [submissions, setSubmissions] = useState([])
 
-    useEffect(() => {
-      const storedSubmissions = JSON.parse(localStorage.getItem(`${formId}-submissions`) || '[]')
-      setSubmissions(storedSubmissions)
-    }, [formId])
+  useEffect(() => {
+    const storedSubmissions = JSON.parse(localStorage.getItem(`${formId}-submissions`) || '[]')
+    setSubmissions(storedSubmissions)
+  }, [formId])
 
-    if (!submissions.length) {
-      return (
-        <div className="p-6">
-          <h2 className="text-lg font-medium mb-4">Submissions</h2>
-          <p>No submissions yet.</p>
-        </div>
-      )
-    }
-
-    return (
-      <div className="p-6">
-        <h2 className="text-lg font-medium mb-4">Submissions</h2>
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Form Submissions</h2>
+      {submissions.length === 0 ? (
+        <p>No submissions yet.</p>
+      ) : (
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -48,8 +42,9 @@ import React, { useState, useEffect } from 'react'
             </tbody>
           </table>
         </div>
-      </div>
-    )
-  }
+      )}
+    </div>
+  )
+}
 
-  export default SubmissionViewer
+export default SubmissionViewer
