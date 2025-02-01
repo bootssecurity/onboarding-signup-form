@@ -13,7 +13,8 @@ const FormPreview = () => {
     steps, 
     currentStep, 
     setCurrentStep, 
-    formSettings 
+    formSettings,
+    addSubmission
   } = store
   
   const [formData, setFormData] = useState({})
@@ -59,13 +60,8 @@ const FormPreview = () => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (validateStep()) {
-      // Use the store's method directly
-      store.addSubmission(formData)
-      
-      // Show success message from form settings
+      addSubmission(formData)
       alert(formSettings.successMessage || 'Form submitted successfully!')
-      
-      // Optional: Reset form or navigate away
       setFormData({})
       setErrors({})
     }

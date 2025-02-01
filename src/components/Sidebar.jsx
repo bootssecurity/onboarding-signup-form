@@ -137,9 +137,6 @@ const Sidebar = () => {
   const currentStepId = store.steps[store.currentStep]?.id
 
   const handleAddField = (field) => {
-    console.log('Attempting to add field:', field)
-    console.log('Current step ID:', currentStepId)
-    
     if (currentStepId) {
       store.addField(currentStepId, field)
     } else {
@@ -168,6 +165,21 @@ const Sidebar = () => {
               <PaintBrushIcon className="w-5 h-5" />
             </button>
           </div>
+        </div>
+        <div className="flex gap-2">
+          <a
+            href="/submissions"
+            className="text-sm text-blue-600 hover:text-blue-700"
+          >
+            View Submissions
+          </a>
+          <a
+            href="/form"
+            className="text-sm text-blue-600 hover:text-blue-700"
+            target="_blank"
+          >
+            Open Form
+          </a>
         </div>
       </div>
 

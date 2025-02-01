@@ -95,7 +95,6 @@ const useStore = create(
         })
       },
 
-      // Rest of the store methods remain the same
       updateField: (stepId, fieldId, updates) => {
         set((state) => ({
           steps: state.steps.map(step =>

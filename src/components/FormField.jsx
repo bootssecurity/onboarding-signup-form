@@ -2,13 +2,6 @@ import React, { useState } from 'react'
 import { TrashIcon, PencilIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import useStore from '../store'
 import FieldEditor from './FieldEditor'
-import {
-  HeadingField,
-  TextBlockField,
-  ImageField,
-  DividerField,
-  SpacerField
-} from './fields'
 
 const FormField = ({ field, stepId, index, onChange, error }) => {
   const { removeField, reorderFields, steps, currentStep } = useStore()
@@ -23,20 +16,142 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
     }
   }
 
+  const handleInputChange = (e) => {
+    if (onChange) {
+      onChange(e.target.value)
+    }
+  }
+
+  const handleEditClick = (e) => {
+    e.preventDefault()
+    setShowEditor(true)
+  }
+
   const renderField = () => {
     switch (field.type) {
       case 'heading':
-        return <HeadingField field={field} />
-      case 'text_block':
-        return <TextBlockField field={field} />
-      case 'image':
-        return <ImageField field={field} />
-      case 'divider':
-        return <DividerField field={field} />
-      case 'spacer':
-        return <SpacerField field={field} />
+        return (
+          <div 
+            className="py-2" 
+            style={{ textAlign: field.textAlign || 'left' }}
+          >
+            {field.headingLevel === 'h1' && (
+              <h1 
+                className="text-4xl font-bold" 
+                style={{ color: field.color || '#000000' }}
+              >
+                {field.content || 'New Heading'}
+              </h1>
+            )}
+            {field.headingLevel === 'h2' && (
+              <h2 
+                className="text-3xl font-bold" 
+                style={{ color: field.color || '#000000' }}
+              >
+                {field.content || 'New Heading'}
+              </h2>
+            )}
+            {field.headingLevel === 'h3' && (
+              <h3 
+                className="text-2xl font-bold" 
+                style={{ color: field.color || '#000000' }}
+              >
+                {field.content || 'New Heading'}
+              </h3>
+            )}
+            {field.headingLevel === 'h4' && (
+              <h4 
+                className="text-xl font-bold" 
+                style={{ color: field.color || '#000000' }}
+              >
+                {field.content || 'New Heading'}
+              </h4>
+            )}
+          </div>
+        )
       
-      // Other field types remain the same
+      case 'text_block':
+        return (
+          <div 
+            className="py-2" 
+            style={{ 
+              textAlign: field.textAlign || 'left',
+              color: field.color || '#374151',
+              fontSize: field.fontSize || '1rem'
+            }}
+          >
+            <div 
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{ 
+                __html: field.content || 'Text block content' 
+              }}
+            />
+          </div>
+        )
+      
+      case 'image':
+        return (
+          <div 
+            className="py-4" 
+            style={{ 
+              textAlign: field.alignment || 'center',
+              display: 'flex',
+              justifyContent: field.alignment || 'center'
+            }}
+          >
+            {field.src ? (
+              <img 
+                src={field.src} 
+                alt={field.alt || 'Uploaded image'}
+                style={{
+                  width: field.width || '100%',
+                  height: field.height || 'auto',
+                  maxWidth: '100%',
+                  objectFit: 'contain'
+                }}
+                className="rounded-lg shadow-md"
+              />
+            ) : (
+              <div 
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
+                style={{ width: field.width || '100%' }}
+              >
+                <p className="text-gray-500">
+                  {field.placeholder || 'Upload an image or enter URL'}
+                </p>
+              </div>
+            )}
+          </div>
+        )
+      
+      case 'divider':
+        return (
+          <hr 
+            className={`my-6 border-t ${
+              field.style === 'dashed' ? 'border-dashed' : 
+              field.style === 'dotted' ? 'border-dotted' : 
+              field.style === 'double' ? 'border-double' : 
+              'border-solid'
+            }`}
+            style={{ 
+              borderColor: field.color || '#e5e7eb',
+              borderTopWidth: field.spacing === 'small' ? '1px' : 
+                             field.spacing === 'large' ? '3px' : '2px'
+            }}
+          />
+        )
+      
+      case 'spacer':
+        return (
+          <div 
+            style={{
+              height: field.spacing === 'small' ? '0.5rem' :
+                      field.spacing === 'large' ? '2rem' : '1rem',
+              borderTop: field.showLine ? `1px ${field.style || 'solid'} ${field.lineColor || '#e5e7eb'}` : 'none'
+            }}
+          />
+        )
+      
       case 'text':
       case 'email':
       case 'phone':
@@ -46,15 +161,14 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
               {field.label}
               {field.required && <span className="text-red-500 text-xs">*</span>}
             </label>
-            {field.description && (
-              <p className="text-xs text-gray-500 mb-2">{field.description}</p>
-            )}
             <input 
               type={field.type}
               placeholder={field.placeholder}
-              className="w-full px-3 py-2 border rounded-md"
+              className={`w-full px-3 py-2 border rounded-md ${
+                error ? 'border-red-500' : 'border-gray-300'
+              }`}
               required={field.required}
-              onChange={(e) => onChange && onChange(e.target.value)}
+              onChange={handleInputChange}
             />
             {error && (
               <p className="text-red-500 text-xs mt-1">{error}</p>
@@ -62,9 +176,72 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
           </div>
         )
       
-      // Other field types...
+      case 'textarea':
+        return (
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              {field.label}
+              {field.required && <span className="text-red-500 text-xs">*</span>}
+            </label>
+            <textarea 
+              placeholder={field.placeholder}
+              className={`w-full px-3 py-2 border rounded-md min-h-[100px] ${
+                error ? 'border-red-500' : 'border-gray-300'
+              }`}
+              required={field.required}
+              onChange={handleInputChange}
+            />
+            {error && (
+              <p className="text-red-500 text-xs mt-1">{error}</p>
+            )}
+          </div>
+        )
+      
+      case 'file':
+        return (
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              {field.label}
+              {field.required && <span className="text-red-500 text-xs">*</span>}
+            </label>
+            <input 
+              type="file"
+              className={`w-full px-3 py-2 border rounded-md ${
+                error ? 'border-red-500' : 'border-gray-300'
+              }`}
+              required={field.required}
+              onChange={handleInputChange}
+            />
+            {error && (
+              <p className="text-red-500 text-xs mt-1">{error}</p>
+            )}
+          </div>
+        )
+      
+      case 'profile_photo':
+        return (
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              {field.label}
+              {field.required && <span className="text-red-500 text-xs">*</span>}
+            </label>
+            <input 
+              type="file"
+              accept="image/*"
+              className={`w-full px-3 py-2 border rounded-md ${
+                error ? 'border-red-500' : 'border-gray-300'
+              }`}
+              required={field.required}
+              onChange={handleInputChange}
+            />
+            {error && (
+              <p className="text-red-500 text-xs mt-1">{error}</p>
+            )}
+          </div>
+        )
+      
       default:
-        return null
+        return <div>Unsupported field type: {field.type}</div>
     }
   }
 
@@ -90,7 +267,7 @@ const FormField = ({ field, stepId, index, onChange, error }) => {
           </button>
         )}
         <button 
-          onClick={() => setShowEditor(true)}
+          onClick={handleEditClick}
           className="p-1.5 text-gray-600 hover:text-blue-600 rounded-md hover:bg-blue-50"
           title="Edit field"
         >
